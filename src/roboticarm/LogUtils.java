@@ -17,5 +17,3 @@ public class LogUtils {
         return "[" + LocalTime.now().format(formatter) + "]";
     }
 }
-
-
