@@ -20,6 +20,6 @@ public class ArmTask implements Runnable {
     public void run() {
         Thread.currentThread().setPriority(priority);
         System.out.println(LogUtils.getTimestamp() + " - " + name + " is executing.");
-        controller.accessResource(name, holdDuration, priority);
+        controller.accessResource(name, holdDuration);
     }
 }

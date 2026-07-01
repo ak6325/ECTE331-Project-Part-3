@@ -3,50 +3,31 @@ package roboticarm;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Shared resource with Priority Inheritance Protocol using ReentrantLock.
+ * Shared resource implementing the Priority Ceiling Protocol.
  */
 public class MotorController {
     private final ReentrantLock lock = new ReentrantLock();
-    private Thread currentOwner = null;
-    private int originalPriority = Thread.NORM_PRIORITY;
+    // In PCP, the ceiling is typically set to the highest possible task priority
+    private final int CEILING_PRIORITY = Thread.MAX_PRIORITY;
 
-    /**
-     * Accesses resource. Elevates priority if a higher priority thread is blocked.
-     */
-    public void accessResource(String threadName, int durationMs, int requestPriority) {
+    public void accessResource(String threadName, int durationMs) {
+        int originalPriority = Thread.currentThread().getPriority();
         
-        // Stage 1: Attempt to check ownership and elevate priority WITHOUT being blocked
-        if (lock.isLocked()) {
-            synchronized (this) {
-                if (currentOwner != null && currentOwner != Thread.currentThread()) {
-                    if (currentOwner.getPriority() < requestPriority) {
-                        System.out.println(LogUtils.getTimestamp() + " - [INHERITANCE] Elevating " + currentOwner.getName() + " to priority " + requestPriority);
-                        originalPriority = currentOwner.getPriority();
-                        currentOwner.setPriority(requestPriority);
-                    }
-                }
-            }
-        }
+        // PCP: Proactive elevation to ceiling
+        System.out.println(LogUtils.getTimestamp() + " - [CEILING] Elevating " + threadName + " to priority " + CEILING_PRIORITY);
+        Thread.currentThread().setPriority(CEILING_PRIORITY);
 
-        // Stage 2: Actually acquire the lock
         lock.lock();
         try {
-            currentOwner = Thread.currentThread();
             System.out.println(LogUtils.getTimestamp() + " - " + threadName + " has ACQUIRED the resource.");
-
             Thread.sleep(durationMs);
-
-            // Restore priority if it was elevated
-            if (Thread.currentThread().getPriority() != originalPriority) {
-                System.out.println(LogUtils.getTimestamp() + " - [INHERITANCE] Restoring " + Thread.currentThread().getName() + " to priority " + originalPriority);
-                Thread.currentThread().setPriority(originalPriority);
-            }
-
             System.out.println(LogUtils.getTimestamp() + " - " + threadName + " has RELEASED the resource.");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
-            currentOwner = null;
+            // Restore original priority
+            Thread.currentThread().setPriority(originalPriority);
+            System.out.println(LogUtils.getTimestamp() + " - [CEILING] Restoring " + threadName + " to priority " + originalPriority);
             lock.unlock();
         }
     }
