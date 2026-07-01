@@ -3,11 +3,13 @@ package roboticarm;
 /**
  * Orchestrator class to demonstrate Priority Inversion.
  */
+
 public class Main {
     /**
      * Entry point. Orchestrates the inversion scenario.
      * @param args Command line arguments.
      */
+	
     public static void main(String[] args) throws InterruptedException {
         MotorController mc = new MotorController();
 

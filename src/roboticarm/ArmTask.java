@@ -17,6 +17,7 @@ public class ArmTask implements Runnable {
      * @param controller Shared resource.
      * @param holdDuration Time in ms to hold the lock (for testing).
      */
+    
     public ArmTask(String name, int priority, MotorController controller, int holdDuration) {
         this.name = name;
         this.priority = priority;

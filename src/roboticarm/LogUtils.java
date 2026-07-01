@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 /**
  * Utility class for formatting system time consistently across all threads.
  */
+
 public class LogUtils {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 

@@ -4,6 +4,7 @@ package roboticarm;
  * Represents the shared critical resource (MotorController).
  * Ensures only one thread accesses the resource at a time via synchronization.
  */
+
 public class MotorController {
 
     /**
