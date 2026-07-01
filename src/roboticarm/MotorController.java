@@ -1,25 +1,53 @@
 package roboticarm;
 
-/**
- * Represents the shared critical resource (MotorController).
- * Ensures only one thread accesses the resource at a time via synchronization.
- */
+import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Shared resource with Priority Inheritance Protocol using ReentrantLock.
+ */
 public class MotorController {
+    private final ReentrantLock lock = new ReentrantLock();
+    private Thread currentOwner = null;
+    private int originalPriority = Thread.NORM_PRIORITY;
 
     /**
-     * Simulates access to the motor control hardware with an optional duration.
-     * @param threadName The name of the thread requesting access.
-     * @param durationMs The duration to hold the lock in milliseconds.
+     * Accesses resource. Elevates priority if a higher priority thread is blocked.
      */
-    public synchronized void accessResource(String threadName, int durationMs) {
-        System.out.println(LogUtils.getTimestamp() + " - " + threadName + " has ACQUIRED the MotorController.");
+    public void accessResource(String threadName, int durationMs, int requestPriority) {
+        
+        // Stage 1: Attempt to check ownership and elevate priority WITHOUT being blocked
+        if (lock.isLocked()) {
+            synchronized (this) {
+                if (currentOwner != null && currentOwner != Thread.currentThread()) {
+                    if (currentOwner.getPriority() < requestPriority) {
+                        System.out.println(LogUtils.getTimestamp() + " - [INHERITANCE] Elevating " + currentOwner.getName() + " to priority " + requestPriority);
+                        originalPriority = currentOwner.getPriority();
+                        currentOwner.setPriority(requestPriority);
+                    }
+                }
+            }
+        }
+
+        // Stage 2: Actually acquire the lock
+        lock.lock();
         try {
-            // Simulate work
+            currentOwner = Thread.currentThread();
+            System.out.println(LogUtils.getTimestamp() + " - " + threadName + " has ACQUIRED the resource.");
+
             Thread.sleep(durationMs);
+
+            // Restore priority if it was elevated
+            if (Thread.currentThread().getPriority() != originalPriority) {
+                System.out.println(LogUtils.getTimestamp() + " - [INHERITANCE] Restoring " + Thread.currentThread().getName() + " to priority " + originalPriority);
+                Thread.currentThread().setPriority(originalPriority);
+            }
+
+            System.out.println(LogUtils.getTimestamp() + " - " + threadName + " has RELEASED the resource.");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        } finally {
+            currentOwner = null;
+            lock.unlock();
         }
-        System.out.println(LogUtils.getTimestamp() + " - " + threadName + " has RELEASED the MotorController.");
     }
 }
