@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"roboticarm","l":"ArmTask"},{"p":"roboticarm","l":"LogUtils"},{"p":"roboticarm","l":"Main"},{"p":"roboticarm","l":"MotorController"}];updateSearchResults();
