@@ -1,18 +1,37 @@
 package roboticarm;
 
 /**
- * Orchestrator class to test Priority Inheritance.
+ * Main entry point for the Robotic Arm Controller simulation.
+ * Executes scenarios sequentially to evaluate priority protocols.
  */
 public class Main {
+    /**
+     * Runs the performance simulation suite.
+     * @param args Command line arguments (not used).
+     */
     public static void main(String[] args) throws InterruptedException {
         MotorController mc = new MotorController();
 
-        // Logger (Low) holds lock for 5s. Safety Monitor (High) requests it after 0.5s.
-        Thread logger = new Thread(new ArmTask("Logger", Thread.MIN_PRIORITY, mc, 5000));
-        Thread safety = new Thread(new ArmTask("Safety Monitor", Thread.MAX_PRIORITY, mc, 1000));
+        runScenario(mc, "INVERSION");
+        runScenario(mc, "INHERITANCE");
+        runScenario(mc, "CEILING");
+    }
 
+    private static void runScenario(MotorController mc, String mode) throws InterruptedException {
+        System.out.println("\nStarting Scenario: " + mode);
+        
+        Thread logger = new Thread(new ArmTask("Logger", mc, 2000, mode));
+        logger.setPriority(Thread.MIN_PRIORITY);
         logger.start();
-        Thread.sleep(500); // Ensure Logger is inside the synchronized block
-        safety.start();    // Trigger inheritance
+
+        Thread.sleep(200);
+
+        Thread safety = new Thread(new ArmTask("Safety Monitor", mc, 500, mode));
+        safety.setPriority(Thread.MAX_PRIORITY);
+        safety.start();
+        
+        logger.join();
+        safety.join();
+        System.out.println("Finished Scenario: " + mode);
     }
 }
